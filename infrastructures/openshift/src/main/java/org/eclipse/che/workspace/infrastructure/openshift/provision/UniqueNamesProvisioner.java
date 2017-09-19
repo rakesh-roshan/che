@@ -45,7 +45,7 @@ public class UniqueNamesProvisioner implements ConfigurationProvisioner {
     osEnv.getPods().clear();
     for (Pod pod : pods.values()) {
       final ObjectMeta podMeta = pod.getMetadata();
-      pod.getMetadata().getLabels().put(CHE_ORIGINAL_NAME_LABEL, podMeta.getName());
+      podMeta.getLabels().put(CHE_ORIGINAL_NAME_LABEL, podMeta.getName());
       final String podName = workspaceId + SEPARATOR + podMeta.getName();
       podMeta.setName(podName);
       osEnv.getPods().put(podName, pod);
@@ -54,7 +54,7 @@ public class UniqueNamesProvisioner implements ConfigurationProvisioner {
     osEnv.getRoutes().clear();
     for (Route route : routes.values()) {
       final ObjectMeta routeMeta = route.getMetadata();
-      route.getMetadata().getLabels().put(CHE_ORIGINAL_NAME_LABEL, routeMeta.getName());
+      routeMeta.getLabels().put(CHE_ORIGINAL_NAME_LABEL, routeMeta.getName());
       final String routeName = NameGenerator.generate(ROUTE_PREFIX, ROUTE_SUFFIX_SIZE);
       routeMeta.setName(routeName);
       osEnv.getRoutes().put(routeName, route);
