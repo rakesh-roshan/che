@@ -55,23 +55,30 @@ public class UniqueNamesProvisionerTest {
   @BeforeMethod
   public void setup() {
     uniqueNamesProvisioner = new UniqueNamesProvisioner();
+  }
+
+  @Test
+  public void provideUniquePodsNames() throws Exception {
     when(runtimeIdentity.getWorkspaceId()).thenReturn(WORKSPACE_ID);
     final HashMap<String, Pod> pods = new HashMap<>();
     pods.put(POD_NAME, newPod());
     doReturn(pods).when(osEnv).getPods();
-    final HashMap<String, Route> routes = new HashMap<>();
-    routes.put(POD_NAME, newRoute());
-    doReturn(routes).when(osEnv).getRoutes();
+
+    uniqueNamesProvisioner.provision(environment, osEnv, runtimeIdentity);
+
+    final String expected = WORKSPACE_ID + SEPARATOR + POD_NAME;
+    assertEquals(osEnv.getPods().get(expected).getMetadata().getName(), expected);
   }
 
   @Test
-  public void provideUniqueOpenShiftObjectsNames() throws Exception {
+  public void provideUniqueRoutesNames() throws Exception {
+    final HashMap<String, Route> routes = new HashMap<>();
+    routes.put(POD_NAME, newRoute());
+    doReturn(routes).when(osEnv).getRoutes();
+
     uniqueNamesProvisioner.provision(environment, osEnv, runtimeIdentity);
 
-    final String expectedPodName = WORKSPACE_ID + SEPARATOR + POD_NAME;
-    final String actualPodName = osEnv.getPods().get(expectedPodName).getMetadata().getName();
-    assertEquals(expectedPodName, actualPodName);
-    final String actualRouteName =
+    final String actual =
         osEnv
             .getRoutes()
             .values()
@@ -79,8 +86,8 @@ public class UniqueNamesProvisionerTest {
             .map(r -> r.getMetadata().getName())
             .collect(toList())
             .get(0);
-    assertTrue(actualRouteName.startsWith(ROUTE_PREFIX));
-    assertTrue(actualRouteName.length() == ROUTE_PREFIX.length() + ROUTE_SUFFIX_SIZE);
+    assertTrue(actual.startsWith(ROUTE_PREFIX));
+    assertTrue(actual.length() == ROUTE_PREFIX.length() + ROUTE_SUFFIX_SIZE);
   }
 
   private static Pod newPod() {
