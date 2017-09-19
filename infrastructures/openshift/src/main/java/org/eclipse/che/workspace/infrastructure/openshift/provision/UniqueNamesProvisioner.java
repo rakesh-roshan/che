@@ -13,8 +13,8 @@ package org.eclipse.che.workspace.infrastructure.openshift.provision;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.openshift.api.model.Route;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import javax.inject.Singleton;
 import org.eclipse.che.api.core.model.workspace.runtime.RuntimeIdentity;
 import org.eclipse.che.api.workspace.server.spi.InfrastructureException;
@@ -41,18 +41,18 @@ public class UniqueNamesProvisioner implements ConfigurationProvisioner {
       InternalEnvironment environment, OpenShiftEnvironment osEnv, RuntimeIdentity identity)
       throws InfrastructureException {
     final String workspaceId = identity.getWorkspaceId();
-    final Map<String, Pod> pods = new HashMap<>(osEnv.getPods());
+    final Set<Pod> pods = new HashSet<>(osEnv.getPods().values());
     osEnv.getPods().clear();
-    for (Pod pod : pods.values()) {
+    for (Pod pod : pods) {
       final ObjectMeta podMeta = pod.getMetadata();
       podMeta.getLabels().put(CHE_ORIGINAL_NAME_LABEL, podMeta.getName());
       final String podName = workspaceId + SEPARATOR + podMeta.getName();
       podMeta.setName(podName);
       osEnv.getPods().put(podName, pod);
     }
-    final Map<String, Route> routes = new HashMap<>(osEnv.getRoutes());
+    final Set<Route> routes = new HashSet<>(osEnv.getRoutes().values());
     osEnv.getRoutes().clear();
-    for (Route route : routes.values()) {
+    for (Route route : routes) {
       final ObjectMeta routeMeta = route.getMetadata();
       routeMeta.getLabels().put(CHE_ORIGINAL_NAME_LABEL, routeMeta.getName());
       final String routeName = NameGenerator.generate(ROUTE_PREFIX, ROUTE_SUFFIX_SIZE);

@@ -11,6 +11,7 @@
 package org.eclipse.che.workspace.infrastructure.openshift.provision;
 
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.che.workspace.infrastructure.openshift.provision.UniqueNamesProvisioner.CHE_ORIGINAL_NAME_LABEL;
 import static org.eclipse.che.workspace.infrastructure.openshift.provision.UniqueNamesProvisioner.ROUTE_PREFIX;
 import static org.eclipse.che.workspace.infrastructure.openshift.provision.UniqueNamesProvisioner.ROUTE_SUFFIX_SIZE;
 import static org.eclipse.che.workspace.infrastructure.openshift.provision.UniqueNamesProvisioner.SEPARATOR;
@@ -19,12 +20,14 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 import org.eclipse.che.api.core.model.workspace.runtime.RuntimeIdentity;
 import org.eclipse.che.api.workspace.server.spi.InternalEnvironment;
 import org.eclipse.che.workspace.infrastructure.openshift.environment.OpenShiftEnvironment;
@@ -45,6 +48,8 @@ public class UniqueNamesProvisionerTest {
   private static final String WORKSPACE_ID = "workspace37";
   private static final String POD_NAME = "testPod";
   private static final String ROUTE_NAME = "testRoute";
+  private static final Pattern UNIQUE_ROUTE_NAME_REGEX =
+      Pattern.compile('^' + ROUTE_PREFIX + "[A-z0-9]{" + ROUTE_SUFFIX_SIZE + "}$");
 
   @Mock private InternalEnvironment environment;
   @Mock private OpenShiftEnvironment osEnv;
@@ -67,7 +72,9 @@ public class UniqueNamesProvisionerTest {
     uniqueNamesProvisioner.provision(environment, osEnv, runtimeIdentity);
 
     final String expected = WORKSPACE_ID + SEPARATOR + POD_NAME;
-    assertEquals(osEnv.getPods().get(expected).getMetadata().getName(), expected);
+    final ObjectMeta podMeta = osEnv.getPods().get(expected).getMetadata();
+    assertEquals(podMeta.getName(), expected);
+    assertEquals(podMeta.getLabels().get(CHE_ORIGINAL_NAME_LABEL), POD_NAME);
   }
 
   @Test
@@ -78,16 +85,11 @@ public class UniqueNamesProvisionerTest {
 
     uniqueNamesProvisioner.provision(environment, osEnv, runtimeIdentity);
 
-    final String actual =
-        osEnv
-            .getRoutes()
-            .values()
-            .stream()
-            .map(r -> r.getMetadata().getName())
-            .collect(toList())
-            .get(0);
-    assertTrue(actual.startsWith(ROUTE_PREFIX));
-    assertTrue(actual.length() == ROUTE_PREFIX.length() + ROUTE_SUFFIX_SIZE);
+    final ObjectMeta routeData =
+        osEnv.getRoutes().values().stream().map(Route::getMetadata).collect(toList()).get(0);
+    assertTrue(routeData.getName().startsWith(ROUTE_PREFIX));
+    assertTrue(UNIQUE_ROUTE_NAME_REGEX.matcher(routeData.getName()).matches());
+    assertEquals(routeData.getLabels().get(CHE_ORIGINAL_NAME_LABEL), ROUTE_NAME);
   }
 
   private static Pod newPod() {
