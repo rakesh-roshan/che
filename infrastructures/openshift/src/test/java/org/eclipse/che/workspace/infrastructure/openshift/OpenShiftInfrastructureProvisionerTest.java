@@ -36,7 +36,7 @@ public class OpenShiftInfrastructureProvisionerTest {
 
   @Mock private InstallerConfigProvisioner installerProvisioner;
   @Mock private PersistentVolumeClaimProvisioner pvcProvisioner;
-  @Mock private UniqueNamesProvisioner prefixNameProvisioner;
+  @Mock private UniqueNamesProvisioner uniqueNamesProvisioner;
   @Mock private InternalEnvironment environment;
   @Mock private OpenShiftEnvironment osEnv;
   @Mock private RuntimeIdentity runtimeIdentity;
@@ -49,8 +49,8 @@ public class OpenShiftInfrastructureProvisionerTest {
   public void setUp() {
     osInfraProvisioner =
         new OpenShiftInfrastructureProvisioner(
-            installerProvisioner, pvcProvisioner, prefixNameProvisioner);
-    provisionOrder = inOrder(installerProvisioner, pvcProvisioner, prefixNameProvisioner);
+            installerProvisioner, pvcProvisioner, uniqueNamesProvisioner);
+    provisionOrder = inOrder(installerProvisioner, pvcProvisioner, uniqueNamesProvisioner);
   }
 
   @Test
@@ -64,7 +64,7 @@ public class OpenShiftInfrastructureProvisionerTest {
         .verify(pvcProvisioner)
         .provision(eq(environment), eq(osEnv), eq(runtimeIdentity));
     provisionOrder
-        .verify(prefixNameProvisioner)
+        .verify(uniqueNamesProvisioner)
         .provision(eq(environment), eq(osEnv), eq(runtimeIdentity));
     provisionOrder.verifyNoMoreInteractions();
   }

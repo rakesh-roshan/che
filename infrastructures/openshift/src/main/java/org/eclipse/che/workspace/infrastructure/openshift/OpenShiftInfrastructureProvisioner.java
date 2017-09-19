@@ -31,16 +31,16 @@ public class OpenShiftInfrastructureProvisioner {
 
   private final InstallerConfigProvisioner installerConfigProvisioner;
   private final PersistentVolumeClaimProvisioner persistentVolumeClaimProvisioner;
-  private final UniqueNamesProvisioner prefixNameProvisioner;
+  private final UniqueNamesProvisioner uniqueNamesProvisioner;
 
   @Inject
   public OpenShiftInfrastructureProvisioner(
       InstallerConfigProvisioner installerConfigProvisioner,
       PersistentVolumeClaimProvisioner projectVolumeProvisioner,
-      UniqueNamesProvisioner prefixNameProvisioner) {
+      UniqueNamesProvisioner uniqueNamesProvisioner) {
     this.installerConfigProvisioner = installerConfigProvisioner;
     this.persistentVolumeClaimProvisioner = projectVolumeProvisioner;
-    this.prefixNameProvisioner = prefixNameProvisioner;
+    this.uniqueNamesProvisioner = uniqueNamesProvisioner;
   }
 
   public void provision(
@@ -48,6 +48,6 @@ public class OpenShiftInfrastructureProvisioner {
       throws InfrastructureException {
     installerConfigProvisioner.provision(environment, osEnv, identity);
     persistentVolumeClaimProvisioner.provision(environment, osEnv, identity);
-    prefixNameProvisioner.provision(environment, osEnv, identity);
+    uniqueNamesProvisioner.provision(environment, osEnv, identity);
   }
 }
